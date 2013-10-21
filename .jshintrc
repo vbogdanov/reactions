@@ -1,0 +1,19 @@
+{
+	"undef":true,
+	"newcap":true,
+	"noarg":true,
+	"nonew":true,
+	"quotmark":"single",
+	"strict":true,
+	"maxparams":3,
+	"maxdepth":2,
+	"maxstatements":15,
+	"eqeqeq": true,
+	"globals": {
+		"require": false,
+		"define":false,
+		"module": true,
+		"process": false,
+		"console": false
+	}
+}
