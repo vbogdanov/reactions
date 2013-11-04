@@ -118,7 +118,7 @@
     } else {
       done(false, context);
     }
-  }
+  };
 
   function constructMakeFn(fn) {
     return function () {
