@@ -11,5 +11,8 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/vbogdanov/reactions.git"
+  },
+  "devDependencies": {
+    "jasmine-node": "~1.11.0"
   }
 }
