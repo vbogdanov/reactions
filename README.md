@@ -36,14 +36,14 @@ Reactions.fn.*
 for all of them to complete or the first error before calling done. 
 Only the first error is passed to done. The original context (eventually changed by the reactions) is passed to done.
 
-`collectParallel(reactions, context, done)` same as parallel, except on success an array containing the results from all reactions is returned.
+`collectParallel(reactions, context, done)` same as parallel, except on success an array containing the results from all reactions is passed to done.
 
 `serial(reactions, context, done)` will call the reactions in order passing the original context. 
 The next functions is executed after the callback of the previous is invoked.
 Upon the first error or successful completion of all functions the done callback is invoked.
 The original context (eventually changed by the reactions) is passed to done.
 
-`collectSerial(reactions, context, done)` same as serial except on success an array of the results from all reactions is returned.
+`collectSerial(reactions, context, done)` same as serial except on success an array of the results from all reactions is passed to done.
 
 `waterfall(reactions, context, done)` will execute each function in order and pass the result of it to the next as context
 The original context is passed to the first function, the result of the last one is passed as data to done. 
