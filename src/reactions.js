@@ -15,18 +15,23 @@
 
   /** 
    * Creates a 'done' function.
-   * @argument defaultDone - the done function to delegate to.
-   * @argument success - [optional] - the success function to delegate to.
    * A done function can be invoked only once, receives an error and callback
    * in case of error invokes the defaultDone passing the error
    * in case of success invokes sucess passing the data or 
    * the defaultDone if no success is present passing false as first argument and
    * data as the second
+   *
+   * @argument defaultDone - the done function to delegate to.
+   * @argument success - [optional] - the success function to delegate to.
+   * @argument param - [optional] - a parameter to pass as third one to 
+   * the callback function or second one to the success function. Intended for passing
+   * of additional parameters to newly created Done functions (as faster alternative to closures).
+   *
    */
-  Reactions.done = function (defaultDone, success) {
+  Reactions.done = function (defaultDone, success, param) {
     var invoked = false;
     if (typeof success !== 'function')
-      success = function (data) { defaultDone(false, data); };
+      success = function (data, param) { defaultDone(false, data, param); };
     
     return function (error, data) {
       if (invoked)
@@ -36,7 +41,7 @@
         if (error)
           defaultDone(error);
         else 
-          success(data);
+          success(data, param);
       });
     };
   };
@@ -50,14 +55,14 @@
       process.nextTick:
       function (fn) { setTimeout(fn, 0); };
 
-
   Reactions.fn = {};
+
   /**
    * Invoke all reactions in order, waiting for the previous to complete. 
-   * All reactions and done are invoked with the original context.
+   * All reactions are invoked with the original context. Done is invoked with the array of data returned by the reactions
    * Executions stops on first error and done(error) is invoked
    */
-  Reactions.fn.series = function(reactions, context, done) {
+  Reactions.fn.collectSeries = function(reactions, context, done) {
     var results = [];
     var toRun = -1;
     function next(error, value) {
@@ -70,20 +75,41 @@
       if (toRun < reactions.length) {
         reactions[toRun].call(null, context, Reactions.done(next));
       } else {
-        done(null, context);
+        done(false, results);
       }
     }
     next();
   };
 
   /**
+   * Invoke all reactions in order, waiting for the previous to complete. 
+   * All reactions and done are invoked with the original context.
+   * Executions stops on first error and done(error) is invoked
+   */
+  Reactions.fn.series = function(reactions, context, done) {
+    Reactions.fn.collectSeries(reactions, context, function (err, data) {
+      if (err) {
+        done(err);
+      } else {
+        done(false, context);
+      }
+    });
+  };
+
+  /**
    * Execution of the reactions is started in the order in which they appear. 
    * done is invoked when all reactions complete successfully or on the first received error
+   * data passed to Done is the array of the datas returned by the reactions
    */
-  Reactions.fn.parallel = function(reactions, context, done) {
-    var countback = reactions.length + 1;
+  Reactions.fn.collectParallel = function(reactions, context, done) {
+    if (reactions.length === 0) {
+      done(false, []);
+      return;
+    }
+    var countback = reactions.length;
     var finished = false;
-    function next(error, data) {
+    var results = [];
+    function next(error, data, index) {
       if (finished) return; //callback has been invoked already
 
       if (error) {
@@ -91,16 +117,36 @@
         done(error);
         return;
       }
+     
+      if (index >= 0) {
+        results[index] = data;
+      }
+      
       countback -= 1;
-      if (countback === 0)
-        done(null, context);
+      
+      if (countback === 0) {
+        done(false, results);
+      }
     }
 
     for (var i = 0; i < reactions.length; i ++) {
-      reactions[i].call(null, context, Reactions.done(next));
+      reactions[i].call(null, context, Reactions.done(next, undefined, i));
     }
+  };
 
-    next();
+  /**
+   * Execution of the reactions is started in the order in which they appear. 
+   * done is invoked when all reactions complete successfully or on the first received error
+   * data passed to Done is the context object. It might have been changed by the reactions
+   */
+  Reactions.fn.parallel = function(reactions, context, done) {
+    Reactions.fn.collectParallel(reactions, context, function (err, data) {
+      if(err) {
+        done(err);
+      } else {
+        done(false, context);
+      }
+    });
   };
 
  /**
@@ -120,6 +166,7 @@
     }
   };
 
+  
   function constructMakeFn(fn) {
     return function () {
       var argcount = fn.length - 2;

@@ -270,4 +270,185 @@ describe('reactions', function (argument) {
 
   });
 
+  describe('collectSeries', function (argument) {
+    var fn1, fn2, fn3;
+    function appender(val) {
+      return function (context, done) {
+        done(false, context + val);
+      };
+    }
+    beforeEach(function () {
+      fn1 = jasmine.createSpy('1').andCallFake(appender('1'));
+      fn2 = jasmine.createSpy('2').andCallFake(appender('2'));
+      fn3 = jasmine.createSpy('3').andCallFake(appender('3'));
+    });
+
+    it('is a function', function () {
+      expect(reactions.make.collectSeries).toEqual(jasmine.any(Function));
+    });
+
+    it('invokes the reactions passing the original context', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectSeries([fn1, fn2, fn3]);
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual(['t1', 't2', 't3']);
+        expect(error).toBeFalsy();
+        [fn1, fn2, fn3].forEach(function (fn) {
+          expect(fn).toHaveBeenCalledWith(context, jasmine.any(Function));
+        });
+        next();
+      });
+    });
+
+    it('stops after the first exception and passes it to the done', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectSeries([fn1, fnErr, fn3]); 
+
+      reactor(context, function (error, data) {
+        expect(data).toBeUndefined();
+        expect(error).not.toBeFalsy();
+        expect(fn1).toHaveBeenCalledWith(context, jasmine.any(Function));
+        expect(fnErr).toHaveBeenCalledWith(context, jasmine.any(Function));
+        expect(fn3).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('works with only one function', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectSeries([fn1]); 
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual(['t1']);
+        expect(error).toBeFalsy();
+        expect(fn1).toHaveBeenCalledWith(context, jasmine.any(Function));
+        next();
+      });
+    });
+
+
+    it('works with no functions', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectSeries([]); 
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual([]);
+        expect(error).toBeFalsy();
+        next();
+      });
+    });
+
+
+    it('invokes them in order', function (next) {
+      var context = 't';
+      var delayedFirst = function (world, done) {
+        setTimeout(function () {
+          expect(fn2).not.toHaveBeenCalled();
+          done(null, 'delayed');
+        }, 100);
+      };
+      var reactor = reactions.make.collectSeries([delayedFirst, fn2]);
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual(['delayed','t2']);
+        expect(error).toBeFalsy();
+        expect(fn2).toHaveBeenCalledWith(context, jasmine.any(Function));
+        next();
+      });
+    });
+
+  });
+
+ describe('collectParallel', function (argument) {
+    var fn1, fn2, fn3;
+    function appender(val) {
+      return function (context, done) {
+        done(false, context + val);
+      };
+    }
+    beforeEach(function () {
+      fn1 = jasmine.createSpy('1').andCallFake(appender('1'));
+      fn2 = jasmine.createSpy('2').andCallFake(appender('2'));
+      fn3 = jasmine.createSpy('3').andCallFake(appender('3'));
+    });
+
+
+    it('is a function', function () {
+      expect(reactions.make.collectParallel).toEqual(jasmine.any(Function));
+    });
+
+    it('invokes the reactions passing the original context', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectParallel([fn1, fn2, fn3]);
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual(['t1', 't2', 't3']);
+        expect(error).toBeFalsy();
+        [fn1, fn2, fn3].forEach(function (fn) {
+          expect(fn).toHaveBeenCalledWith(context, jasmine.any(Function));
+        });
+        next();
+      });
+    });
+
+    it('passes the first exception to done', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectParallel([fn1, fnErr, fn3]); 
+
+      reactor(context, function (error, data) {
+        expect(data).toBeUndefined();
+        expect(error).toBeDefined();
+        expect(fn1).toHaveBeenCalledWith(context, jasmine.any(Function));
+        expect(fnErr).toHaveBeenCalledWith(context, jasmine.any(Function));
+        expect(fn3).toHaveBeenCalledWith(context, jasmine.any(Function));
+        next();
+      });
+    });
+
+    it('works with only one function', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectParallel([fn1]); 
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual(['t1']);
+        expect(error).toBeFalsy();
+        expect(fn1).toHaveBeenCalledWith(context, jasmine.any(Function));
+        next();
+      });
+    });
+
+
+    it('works with no functions', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectParallel([]); 
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual([]);
+        expect(error).toBeFalsy();
+        next();
+      });
+    });
+
+
+    it('invokes them in order', function (next) {
+      var context = 't';
+      var delayedFirst = function (world, done) {
+        setTimeout(function () {
+          expect(fn2).toHaveBeenCalled();
+          done(null, 'world');
+        }, 100);
+      };
+      var reactor = reactions.make.collectParallel([delayedFirst, fn2]);
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual(['world', 't2']);
+        expect(error).toBeFalsy();
+        expect(fn2).toHaveBeenCalledWith(context, jasmine.any(Function));
+        next();
+      });
+    });
+
+  });
+
 });
