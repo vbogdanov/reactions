@@ -546,4 +546,67 @@ describe('reactions', function (argument) {
 
   });
 
+  describe('while', function () {
+    var trueFn, falseFn, fn1, context;
+    beforeEach(function () {
+      trueFn = jasmine.createSpy('trueFn').andCallFake(function (context, done) {
+        done(false, context.val < 3);
+      });
+      falseFn = jasmine.createSpy('falseFn').andCallFake(function (context, done) {
+        done(false, false);
+      });
+      fn1 = jasmine.createSpy('fn1').andCallFake(function (context, done) {
+        context.val += 1;
+        done(false);
+      });
+      context = {
+        val: 0
+      }
+    });
+
+    it('is a function', function () {
+      expect(reactions.make.while).toEqual(jasmine.any(Function));
+    });
+
+    it('calls the ifReaction and if it returns true the calls trueReaction', function (next) {
+      reactions.make.while(trueFn, fn1)(context, function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual({ val: 3 });
+        expect(trueFn).toHaveBeenCalledWith({ val: 3 }, jasmine.any(Function));
+        expect(fn1).toHaveBeenCalledWith({ val: 3 }, jasmine.any(Function));
+        next();
+      });
+    });
+
+    it('calls the ifReaction and if it returns false calls the falseReaction', function (next) {
+      reactions.make.while(falseFn, fn1)(context, function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual({ val: 0 });
+        expect(falseFn).toHaveBeenCalledWith({ val: 0 }, jasmine.any(Function));
+        expect(fn1).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('calls the done(error) if ifReaction results in error', function (next) {
+      reactions.make.while(fnErr, fn1) (context, function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        expect(fn1).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('calls the done(error) if trueReaction results in error', function (next) {
+      reactions.make.while(trueFn, fnErr) (context, function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        expect(trueFn).toHaveBeenCalled();
+        next();
+      });
+    });
+
+  });
+
+
 });

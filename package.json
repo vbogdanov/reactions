@@ -1,6 +1,6 @@
 {
   "name": "reactions",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A library of methods for creating function (context, next), where next is a function (error, result)",
   "main": "src/reactions.js",
   "scripts": {

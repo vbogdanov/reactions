@@ -180,6 +180,20 @@
     });
   };
 
+  Reactions.fn.while = function (ifReaction, trueReaction, context, done) {
+    ifReaction(context, function (err, data) {
+      if (err) return done(err);
+      
+      if (data) {
+        trueReaction(context, function (err2, data2) {
+          if (err2) return done(err2);
+          Reactions.fn.while(ifReaction, trueReaction, context, done);
+        });
+      } else {
+        done(false, context);
+      }
+    });
+  };
   
   function constructMakeFn(fn) {
     return function () {
