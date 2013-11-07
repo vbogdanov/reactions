@@ -194,6 +194,17 @@
       }
     });
   };
+
+  Reactions.fn.switch = function (keyReaction, reactionMap, context, done) {
+    keyReaction(context, function (err, data) {
+      if (err) return done(err);
+      var doFunction = reactionMap[data] || reactionMap['default'];
+      if (typeof doFunction === 'function')
+        doFunction(context, done);
+      else
+        done(false, context);
+    });
+  };
   
   function constructMakeFn(fn) {
     return function () {
