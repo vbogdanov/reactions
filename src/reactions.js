@@ -166,6 +166,20 @@
     }
   };
 
+  Reactions.fn.ifelse = function (ifReaction, trueReaction, falseReaction, context, done) {
+    ifReaction(context, function (err, data) {
+      if (err) {
+        done(err);
+        return;
+      }
+      var doFunction = data? trueReaction: falseReaction;
+      if (typeof doFunction === 'function')
+        doFunction(context, done);
+      else
+        done(false, context);
+    });
+  };
+
   
   function constructMakeFn(fn) {
     return function () {

@@ -5,9 +5,9 @@
 	"nonew":true,
 	"quotmark":"single",
 	"strict":true,
-	"maxparams":3,
+	"maxparams":5,
 	"maxdepth":2,
-	"maxstatements":15,
+	"maxstatements":20,
 	"eqeqeq": true,
 	"globals": {
 		"require": false,

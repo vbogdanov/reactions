@@ -450,5 +450,100 @@ describe('reactions', function (argument) {
     });
 
   });
+  
+  describe('ifelse', function () {
+    var trueFn, falseFn, fn1, fn2;
+    beforeEach(function () {
+      trueFn = jasmine.createSpy('trueFn').andCallFake(function (context, done) {
+        done(false, true);
+      });
+      falseFn = jasmine.createSpy('falseFn').andCallFake(function (context, done) {
+        done(false, false);
+      });
+      fn1 = jasmine.createSpy('fn1').andCallFake(function (context, done) {
+        done(false, context + 1);
+      });
+      fn2 = jasmine.createSpy('fn2').andCallFake(function (context, done) {
+        done(false, context + 2);
+      });
+    });
+
+    it('is a function', function () {
+      expect(reactions.make.ifelse).toEqual(jasmine.any(Function));
+    });
+
+    it('calls the ifReaction and if it returns true the calls trueReaction', function (next) {
+      reactions.make.ifelse(trueFn, fn1, fn2)(0, function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual(1);
+        expect(trueFn).toHaveBeenCalledWith(0, jasmine.any(Function));
+        expect(fn1).toHaveBeenCalledWith(0, jasmine.any(Function));
+        expect(fn2).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('calls the ifReaction and if it returns false calls the falseReaction', function (next) {
+      reactions.make.ifelse(falseFn, fn1, fn2)(0, function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual(2);
+        expect(falseFn).toHaveBeenCalledWith(0, jasmine.any(Function));
+        expect(fn1).not.toHaveBeenCalled();
+        expect(fn2).toHaveBeenCalledWith(0, jasmine.any(Function));
+        next();
+      });
+    });
+
+    it('calls the done(error) if ifReaction results in error', function (next) {
+      reactions.make.ifelse(fnErr, fn1, fn2) (0, function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        expect(fn1).not.toHaveBeenCalled();
+        expect(fn2).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('calls the done(error) if trueReaction results in error', function (next) {
+      reactions.make.ifelse(trueFn, fnErr, fn2) (0, function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        expect(trueFn).toHaveBeenCalled();
+        expect(fn2).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('calls the done(error) if falseReaction results in error', function (next) {
+      reactions.make.ifelse(falseFn, fn1, fnErr) (0, function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        expect(falseFn).toHaveBeenCalled();
+        expect(fn1).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('allows passing false instead of trueReaction', function (next) {
+      reactions.make.ifelse(trueFn, false, fn2) (0, function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual(0);
+        expect(trueFn).toHaveBeenCalled();
+        expect(fn2).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    it('allows passing false instead of trueReaction', function (next) {
+      reactions.make.ifelse(falseFn, fn1, false) (0, function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual(0);
+        expect(falseFn).toHaveBeenCalled();
+        expect(fn1).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+  });
 
 });
