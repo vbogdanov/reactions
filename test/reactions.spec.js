@@ -534,7 +534,7 @@ describe('reactions', function (argument) {
       });
     });
 
-    it('allows passing false instead of trueReaction', function (next) {
+    it('allows passing false instead of falseReaction', function (next) {
       reactions.make.ifelse(falseFn, fn1, false) (0, function (err, data) {
         expect(err).toBeFalsy();
         expect(data).toEqual(0);
@@ -561,14 +561,14 @@ describe('reactions', function (argument) {
       });
       context = {
         val: 0
-      }
+      };
     });
 
     it('is a function', function () {
       expect(reactions.make.while).toEqual(jasmine.any(Function));
     });
 
-    it('calls the ifReaction and if it returns true the calls trueReaction', function (next) {
+    it('calls the whileReaction and if it returns true the calls trueReaction', function (next) {
       reactions.make.while(trueFn, fn1)(context, function (err, data) {
         expect(err).toBeFalsy();
         expect(data).toEqual({ val: 3 });
@@ -578,7 +578,7 @@ describe('reactions', function (argument) {
       });
     });
 
-    it('calls the ifReaction and if it returns false calls the falseReaction', function (next) {
+    it('calls the whileReaction and if it returns false calls the falseReaction', function (next) {
       reactions.make.while(falseFn, fn1)(context, function (err, data) {
         expect(err).toBeFalsy();
         expect(data).toEqual({ val: 0 });
@@ -588,7 +588,7 @@ describe('reactions', function (argument) {
       });
     });
 
-    it('calls the done(error) if ifReaction results in error', function (next) {
+    it('calls the done(error) if whileReaction results in error', function (next) {
       reactions.make.while(fnErr, fn1) (context, function (err, data) {
         expect(err).toEqual(jasmine.any(Error));
         expect(data).toBeUndefined();
@@ -608,5 +608,101 @@ describe('reactions', function (argument) {
 
   });
 
+
+  describe('switch', function () {
+    var ALL_KEYS = ['Alice','Bob','Cat'];
+    var AliceFn, BobFn, CatFn, AliceReaction, BobReaction, CatReaction, keyFunctions, reactionMap;
+    beforeEach(function () {
+      AliceFn = jasmine.createSpy('AliceFn').andCallFake(function (context, done) {
+        done(false, 'Alice');
+      });
+      BobFn = jasmine.createSpy('BobFn').andCallFake(function (context, done) {
+        done(false, 'Bob');
+      });
+      CatFn = jasmine.createSpy('CatFn').andCallFake(function (context, done) {
+        done(false, 'Cat');
+      });
+      AliceReaction = jasmine.createSpy('AliceReaction').andCallFake(function (context, done) {
+        context.Alice = true;
+        done(false, context);
+      });
+      BobReaction = jasmine.createSpy('BobReaction').andCallFake(function (context, done) {
+        context.Bob = true;
+        done(false, context);
+      });
+      CatReaction = jasmine.createSpy('CatReaction').andCallFake(function (context, done) {
+        context.Cat = true;
+        done(false, context);
+      });
+
+      
+      keyFunctions = {
+        'Alice': AliceFn,
+        'Bob': BobFn,
+        'Cat': CatFn
+      };
+      reactionMap = {
+        'Alice': AliceReaction,
+        'Bob': BobReaction,
+        'Cat': CatReaction
+      };
+    });
+
+    it('is a function', function () {
+      expect(reactions.make.switch).toEqual(jasmine.any(Function));
+    });
+
+    it('calls the done(error) if keyReaction results in error', function (next) {
+      reactions.make.switch(fnErr, reactionMap) (0, function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        expect(AliceReaction).not.toHaveBeenCalled();
+        expect(BobReaction).not.toHaveBeenCalled();
+        expect(CatReaction).not.toHaveBeenCalled();
+        next();
+      });
+    });
+
+    ALL_KEYS.forEach(function (key) {
+      
+      it('calls the keyReaction and the mapped reaction according to result', function (next) {
+          var keyFn = keyFunctions[key];
+          var context = {};
+          reactions.make.switch(keyFn, reactionMap)(context, function (err, data) {
+          expect(err).toBeFalsy();
+          expect(data).toEqual(jasmine.any(Object));
+          //keyFn:
+          expect(keyFn).toHaveBeenCalledWith(context, jasmine.any(Function));
+          //reactions:
+          expect(reactionMap[key]).toHaveBeenCalledWith(context, jasmine.any(Function));
+          for (var k in reactionMap) {
+            if (k !== key) {
+              expect(reactionMap[k]).not.toHaveBeenCalled();
+            }
+          }
+          next();
+        });
+      });
+
+      it('calls the done(error) if mappedReaction results in error', function (next) {
+          reactionMap[key] = fnErr;
+          var keyFn = keyFunctions[key];
+          reactions.make.switch(keyFn, reactionMap) ({}, function (err, data) {
+          expect(err).toEqual(jasmine.any(Error));
+          expect(data).toBeUndefined();
+
+          expect(keyFn).toHaveBeenCalled();
+          for (var k in reactionMap) {
+            if (k !== key) {
+              expect(reactionMap[k]).not.toHaveBeenCalled();
+            }
+          }
+          next();
+        });
+      });
+
+    });
+
+  });
 
 });

@@ -167,27 +167,17 @@
   };
 
   Reactions.fn.ifelse = function (ifReaction, trueReaction, falseReaction, context, done) {
-    ifReaction(context, function (err, data) {
-      if (err) {
-        done(err);
-        return;
-      }
-      var doFunction = data? trueReaction: falseReaction;
-      if (typeof doFunction === 'function')
-        doFunction(context, done);
-      else
-        done(false, context);
-    });
+    Reactions.fn.switch(ifReaction, { 'true': trueReaction, 'false': falseReaction }, context, done);
   };
 
-  Reactions.fn.while = function (ifReaction, trueReaction, context, done) {
-    ifReaction(context, function (err, data) {
+  Reactions.fn.while = function (whileReaction, trueReaction, context, done) {
+    whileReaction(context, function (err, data) {
       if (err) return done(err);
       
       if (data) {
         trueReaction(context, function (err2, data2) {
           if (err2) return done(err2);
-          Reactions.fn.while(ifReaction, trueReaction, context, done);
+          Reactions.fn.while(whileReaction, trueReaction, context, done);
         });
       } else {
         done(false, context);
