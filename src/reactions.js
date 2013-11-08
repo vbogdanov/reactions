@@ -21,9 +21,9 @@
    * the defaultDone if no success is present passing false as first argument and
    * data as the second
    *
-   * @argument defaultDone - the done function to delegate to.
-   * @argument success - [optional] - the success function to delegate to.
-   * @argument param - [optional] - a parameter to pass as third one to 
+   * @param defaultDone - the done function to delegate to.
+   * @param success - [optional] - the success function to delegate to.
+   * @param param - [optional] - a parameter to pass as third one to 
    * the callback function or second one to the success function. Intended for passing
    * of additional parameters to newly created Done functions (as faster alternative to closures).
    *
@@ -166,6 +166,11 @@
     }
   };
 
+  /**
+   * Invokes the ifReaction, and according to its result invokes either trueReaction or falseReaction. 
+   * Continuation variant of `if (ifReaction()) trueReaction(); else falseReaction();`
+   * @param
+   */
   Reactions.fn.ifelse = function (ifReaction, trueReaction, falseReaction, context, done) {
     Reactions.fn.switch(ifReaction, { 'true': trueReaction, 'false': falseReaction }, context, done);
   };
@@ -185,6 +190,20 @@
     });
   };
 
+  /**
+   * Switches between multiple reactions based on the results from the keyReaction. 
+   * Both the keyReaction and the chosen reaction are passed the context. 
+   * The chosen reaction is passed the original done.
+   * If the keyReaction results in error the done(error) is invoked and no reaction is chosen.
+   * If the reaction map does not contain a reaction matching the result of keyReaction the 'default' reaction is invoked. 
+   * In case such a reaction (default) is not present, done(false, context) is invoked.
+   *
+   * @param keyReaction - a reaction returning the key for the chosen reaction.
+   * @param reactionMap - a javascript object whose properties contain reactions.
+   * @param context - the context to use
+   * @param done
+   * @continuation error or success from the chosen reaction
+   */
   Reactions.fn.switch = function (keyReaction, reactionMap, context, done) {
     keyReaction(context, function (err, data) {
       if (err) return done(err);
@@ -194,6 +213,55 @@
       else
         done(false, context);
     });
+  };
+
+  /**
+   * Map function  executes `context.map(mapReaction)` with 
+   * continuation passing style / async mapReaction
+   * It requires the context to be an array.
+   *
+   * @param mapReaction - reaction mapping from context item to the result item
+   * @param context
+   * @param done
+   */
+  Reactions.fn.map = function (mapReaction, context, done) {
+    //context must be an array
+    var result = [];
+    var count = context.length;
+    var success = function (data, index) {
+      result[index] = data;
+      count --;
+      if (count === 0) {
+        done(false, result);
+      }
+    };
+    context.forEach(function (item, index) {
+      mapReaction(item, Reactions.done(done, success, index));
+    });
+  };
+
+
+   /**
+   * Map function  executes `context.reduce(reduceReaction, initial)` with 
+   * continuation passing style / async mapReaction
+   * It requires the context to be an array.
+   *
+   * @param intial - intial value
+   * @param reduceReaction - reaction receiving { 'initial': ... , 'current': ... } context and required to pass the intial value of the next invokation
+   * @param context
+   * @param done
+   */
+  Reactions.fn.reduce = function (initial, reduceReaction, context, done) {
+    //context must be an array
+    if (context.length > 0) {
+      var head = context[0];
+      var tail = context.slice(1);
+      reduceReaction({ 'initial': initial, 'current': head }, Reactions.done(done, function (value) {
+        Reactions.fn.reduce(value, reduceReaction, tail, done);
+      }));
+    } else {
+      done(false, initial);
+    }
   };
   
   function constructMakeFn(fn) {

@@ -705,4 +705,58 @@ describe('reactions', function (argument) {
 
   });
 
+  describe('map', function () {
+
+    var mapReaction = function (context, done) {
+      done(false, -context);
+    };
+
+    it('is a function', function () {
+      expect(reactions.make.map).toEqual(jasmine.any(Function));
+    });
+
+    it('maps all items in an array-like context according to the mappedReaction', function (next) {
+      reactions.make.map(mapReaction)([1, 2, 3], function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual([-1, -2, -3]);
+        next();
+      });
+    });
+
+    it('returns error if the mapReaction results in error', function (next) {
+      reactions.make.map(fnErr)([1, 2, 3], function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        next();
+      });
+    });
+  });
+
+  describe('reduce', function () {
+
+    var reduceReaction = function (context, done) {
+      done(false, context.initial + context.current);
+    };
+
+    it('is a function', function () {
+      expect(reactions.make.reduce).toEqual(jasmine.any(Function));
+    });
+
+    it('reduces all items in an array-like context according to the reduceReaction', function (next) {
+      reactions.make.reduce(0, reduceReaction)([1, 2, 3], function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual(6);
+        next();
+      });
+    });
+
+    it('returns error if the reduceReaction results in error', function (next) {
+      reactions.make.reduce(0, fnErr)([1, 2, 3], function (err, data) {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(data).toBeUndefined();
+        next();
+      });
+    });
+  });
+
 });
