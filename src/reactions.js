@@ -167,6 +167,29 @@
   };
 
   /**
+  * A reaction (starting with the first) is invoked passing the original context.
+  *   If there are no reactions done(false) is invoked.
+  * Upon succeeding with falsy data the steps are repeated for the next reaction.
+  * Upon succeeding with truthy data the done(false, data) is invoked.
+  * Upon error the done(error) is invoked.
+  */
+  Reactions.fn.first = function (reactions, context, done) {
+    if (reactions.length === 0) {
+      done(false);
+      return;
+    }
+    var head = reactions[0];
+    var tail = reactions.slice(1);
+    head(context, Reactions.done(done, function (success) {
+      if (success) {
+        done(false, success);
+      } else {
+        Reactions.fn.first(tail, context, done);
+      }
+    }));
+  };
+
+  /**
    * Invokes the ifReaction, and according to its result invokes either trueReaction or falseReaction. 
    * Continuation variant of `if (ifReaction()) trueReaction(); else falseReaction();`
    * @param
