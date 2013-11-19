@@ -15,10 +15,6 @@ and Done
 
 For general purpose async helpers see [caolan/async](https://github.com/caolan/async Async) - An active project with good documentation
 
-API:
-------------------
-[jsdoc generated documentation](out/index.html)
-
 Reaction.fn & Reaction.make
 ---------------------------
 `Reactions.fn` contains functions operating on Reaction functions and accepting initial context and done. For example
@@ -33,6 +29,3 @@ The result of the partial execution matches the Reaction function signature:
 ```
 Note: `Reactions.make` is automatically generated from `Reactions.fn` with the expectation 
 that the last two arguments of all functions are context and done.
-
-
-

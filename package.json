@@ -13,6 +13,7 @@
     "url": "git://github.com/vbogdanov/reactions.git"
   },
   "devDependencies": {
-    "jasmine-node": "~1.11.0"
+    "jasmine-node": "~1.11.0",
+    "jsdoc": "~3.3.0-alpha2"
   }
 }
