@@ -17,7 +17,7 @@ For general purpose async helpers see [caolan/async](https://github.com/caolan/a
 
 API:
 ------------------
-[jsdoc generated documentation](out/index.html)
+[jsdoc generated documentation](http://htmlpreview.github.io/?http://raw.github.com/vbogdanov/reactions/master/out/index.html)
 
 Reaction.fn & Reaction.make
 ---------------------------
