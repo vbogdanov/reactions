@@ -75,7 +75,14 @@ function () {
    */
   exports.fn.collectSeries = function(reactions, context, done) {
     var results = [];
-    var toRun = -1;
+    var toRun = 0;
+    function run() {
+      if (toRun < reactions.length) {
+        reactions[toRun].call(null, context, exports.done(next));
+      } else {
+        done(false, results);
+      }
+    }
     function next(error, value) {
       if (error) {
         done(error);
@@ -83,13 +90,9 @@ function () {
       }
       results[toRun] = value;
       toRun += 1;
-      if (toRun < reactions.length) {
-        reactions[toRun].call(null, context, exports.done(next));
-      } else {
-        done(false, results);
-      }
+      run();
     }
-    next();
+    run();
   };
 
   /**

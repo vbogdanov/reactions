@@ -293,10 +293,23 @@ describe('reactions', function (argument) {
 
       reactor(context, function (error, data) {
         expect(data).toEqual(['t1', 't2', 't3']);
+        expect(data[-1]).toBeUndefined();
         expect(error).toBeFalsy();
         [fn1, fn2, fn3].forEach(function (fn) {
           expect(fn).toHaveBeenCalledWith(context, jasmine.any(Function));
         });
+        next();
+      });
+    });
+
+    it('there is no \"-1\" property in the result', function (next) {
+      var context = 't';
+      var reactor = reactions.make.collectSeries([fn1, fn2, fn3]);
+
+      reactor(context, function (error, data) {
+        expect(data).toEqual(['t1', 't2', 't3']);
+        expect(data.hasOwnProperty('-1')).toBe(false);
+        expect(error).toBeFalsy();
         next();
       });
     });
