@@ -16,8 +16,8 @@
         expect(err).toBeFalsy();
         expect(data).toBe(value);
         next();
-      })
-    })
+      });
+    });
   });
 
 }(require('../src/reactions')));

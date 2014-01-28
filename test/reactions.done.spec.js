@@ -14,7 +14,7 @@
       expect(function () {
         var d = done(function (error) {}, function (data) {});
         d(new Error());
-        d(false, "test");
+        d(false, 'test');
       }).toThrow();
     });   
     
@@ -22,18 +22,18 @@
       var spy = function (error) {
         expect(error).toEqual(jasmine.any(Error));
         next();
-      }
+      };
       var d = done(spy, function (data) {});
       d(new Error());
     });
 
     it('calls success callback on success', function (next) {
       var spy = function (data) {
-        expect(data).toEqual("good");
+        expect(data).toEqual('good');
         next();
-      }
+      };
       var d = done(function (error) {}, spy);
-      d(false, "good");
+      d(false, 'good');
     });
   }
 
