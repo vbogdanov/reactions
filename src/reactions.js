@@ -50,6 +50,35 @@ function () {
     };
   };
 
+  /**
+   * Creates a 'done' function. Unlike done, fastdone invokes the proper handler in the same event handling
+   * A done function can be invoked only once, receives an error and callback
+   * in case of error invokes the defaultDone passing the error
+   * in case of success invokes success passing the data or 
+   * the defaultDone if no success is present passing false as first argument and
+   * data as the second
+   *
+   * @param {Function} defaultDone - the done function to delegate to.
+   * @param {Function=} success - the success function to delegate to.
+   * @param {any=} param - a parameter to pass as third one to 
+   * the callback function or second one to the success function. Intended for passing
+   * of additional argument(s) on success.
+   */
+  exports.fastdone = function (defaultDone, success, param) {
+    var invoked = false;
+    if (typeof success !== 'function')
+      success = function (data, param) { defaultDone(false, data, param); };
+    
+    return function (error, data) {
+      if (invoked)
+        throw new Error('callback functions should be invoked only once');
+      invoked = true;
+      if (error)
+        defaultDone(error);
+      else 
+        success(data, param);
+    };
+  };
 
   //TODO: use a better implementation for the browsers, as setTimeout(fn, 0) is quite slow
   /**
@@ -61,6 +90,16 @@ function () {
   exports.invokeLater = (process && process.nextTick && typeof process.nextTick === 'function')?
       process.nextTick:
       function (fn) { setTimeout(fn, 0); };
+
+  /**
+   * A reaction returning its context immidiately
+   * @method
+   * @param {any} context - the context to return
+   * @param {Done} done - the done function.
+   */
+  exports.echo = function (context, done) {
+    done(false, context);
+  };
 
   /** @namespace */
   exports.fn = {};
