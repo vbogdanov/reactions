@@ -1,6 +1,6 @@
 {
   "name": "reactions",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "A library of methods for creating function (context, next), where next is a function (error, result)",
   "main": "src/reactions.js",
   "scripts": {
@@ -14,6 +14,6 @@
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
-    "jsdoc": "~3.3.0-alpha2"
+    "jsdoc": "~3.3.0-alpha4"
   }
 }

@@ -322,6 +322,7 @@ function () {
   exports.fn.map = function (mapReaction, context, done) {
     if (context.length === 0) {
       done(false, []);
+      return;
     }
     //context must be an array
     var result = [];
@@ -338,6 +339,32 @@ function () {
     });
   };
 
+  /**
+   * MapHash function executes the mapping function for every property of hash
+   * and add the results under the same key in a new hash. 
+   * Current implementation is serial, but can be made parallel
+   * It requires the context to be a hash (JavaScript object).
+   *
+   * @param {Reaction} mapReaction - reaction mapping from context item to the result item
+   * @param {Object} context
+   * @param {Done}  done
+   */
+  exports.fn.mapHash = function (mapReaction, hash, done) {
+    var keys = Object.keys(hash);
+    if (keys.length === 0)
+      return done(false, {});
+
+    var reduceToMap = function (context, d) {
+      var k = context.current;
+      var nh = context.initial;
+      mapReaction(hash[k], exports.fastdone(d, function (result) {
+        nh[k] = result;
+        d(false, nh);
+      }));
+    };
+
+    exports.fn.reduce({}, reduceToMap, keys, done);
+  };
 
    /**
    * Map function  executes `context.reduce(reduceReaction, initial)` with 
