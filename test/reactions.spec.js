@@ -728,6 +728,15 @@ describe('reactions', function (argument) {
       expect(reactions.make.map).toEqual(jasmine.any(Function));
     });
 
+    it('results in empty array if empty array is passed', function (next) {
+      var mr = reactions.make.map(mapReaction);
+      mr([], function (err, data) {
+        expect(err).toBeFalsy();
+        expect(data).toEqual([]);
+        next();
+      });
+    });
+
     it('maps all items in an array-like context according to the mappedReaction', function (next) {
       reactions.make.map(mapReaction)([1, 2, 3], function (err, data) {
         expect(err).toBeFalsy();

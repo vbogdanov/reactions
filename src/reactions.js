@@ -320,6 +320,9 @@ function () {
    * @param {Done}  done
    */
   exports.fn.map = function (mapReaction, context, done) {
+    if (context.length === 0) {
+      done(false, []);
+    }
     //context must be an array
     var result = [];
     var count = context.length;
