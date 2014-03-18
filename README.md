@@ -13,7 +13,7 @@ and Done
   function (error, result)
 ``` 
 
-For general purpose async helpers see [caolan/async](https://github.com/caolan/async Async) - An active project with good documentation
+For general purpose async helpers see [caolan/async](https://github.com/caolan/async) - An active project with good documentation
 
 API:
 ------------------
